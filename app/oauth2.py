@@ -31,6 +31,7 @@ def create_access_token(data: dict):
 
 
 def verify_access_token(token: str, credentials_exception):
+    print(token)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         id: int = payload.get("user_id")
@@ -51,7 +52,6 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
     token = verify_access_token(token, credentials_exception)
     user = db.query(models.User).filter(models.User.id == token.user_id).first()
     return user

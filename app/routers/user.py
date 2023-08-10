@@ -55,10 +55,9 @@ def get_user_by_email(email: str, db: Session = Depends(get_db)):
     return user
 
 
-# Get current user
 @router.get("/me", status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 def get_current_user(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user),
+    current_user: schemas.UserOut = Depends(oauth2.get_current_user),
 ):
     return current_user

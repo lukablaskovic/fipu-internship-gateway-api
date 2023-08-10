@@ -15,26 +15,23 @@ class ProfileType(str, Enum):
 
 class UserCreate(BaseModel):
     username: str
+    avatar: str = "https://avatars.dicebear.com/v2/gridy/Nelson-Jerde.svg"
     ime_prezime: str
     email: EmailStr
     password: str
-    profile_type: ProfileType
+    profile_type: ProfileType = ProfileType.STUDENT
 
 
 class UserOut(BaseModel):
     id: int
     username: str
+    avatar: str
     ime_prezime: str
     email: EmailStr
-    profile_type: ProfileType = ProfileType.STUDENT
+    profile_type: ProfileType
 
     class Config:
         from_attributes = True
-
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
 
 
 class Token(BaseModel):
