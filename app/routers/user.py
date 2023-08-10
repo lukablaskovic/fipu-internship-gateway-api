@@ -6,6 +6,7 @@ from app import models
 from app import schemas
 from app import utils
 from app.db import get_db
+from app import oauth2
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -52,3 +53,12 @@ def get_user_by_email(email: str, db: Session = Depends(get_db)):
             detail=f"User with email: {email} does not exist.",
         )
     return user
+
+
+# Get current user
+@router.get("/me", status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
+def get_current_user(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
+    return current_user

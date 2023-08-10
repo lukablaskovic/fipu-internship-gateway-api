@@ -14,12 +14,12 @@ models.Base.metadata.create_all(bind=engine)
 
 
 origins = [
-    "http://localhost:9000",
+    "http://localhost:5173",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -34,4 +34,5 @@ async def root():
 app.include_router(user.router)
 app.include_router(auth.router)
 
-# Run with: uvicorn app.main:app --reload
+# conda activate fipu-internship-gateway-api
+# Run with: uvicorn app.main:app --reload --host 0.0.0.0 --port 5000
