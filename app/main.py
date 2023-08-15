@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import user, auth
+from app.routers import auth, student
 
 from app.db import engine, get_db
 from app import models
@@ -31,8 +31,8 @@ async def root():
     return {"msg": "FIPU Internship Gateway API - Running ✅"}
 
 
-app.include_router(user.router)
+app.include_router(student.router)
 app.include_router(auth.router)
 
 # conda activate fipu-internship-gateway-api
-# Run with: uvicorn app.main:app --reload --host 0.0.0.0 --port 5000
+# Run with: uvicorn app.main:app --reload --host 0.0.0.0 --port 9001
