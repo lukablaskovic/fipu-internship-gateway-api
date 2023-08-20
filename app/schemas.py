@@ -1,6 +1,21 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from typing import Union
+
+
+class User(BaseModel):
+    id: int
+    name: str
+    surname: str
+    email: EmailStr
+    avatar: str
+    type: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+        exclude = ("password",)
 
 
 class StudentBase(BaseModel):
@@ -15,18 +30,31 @@ class StudentCreate(StudentBase):
     password: str
 
 
-class Student(StudentBase):
-    id: int
-    avatar: str = None
-    type: str
-    created_at: Optional[datetime] = None
+class Student(User):
+    jmbag: str
+    year_of_study: str
     baserow_id: int
 
 
-class StudentOut(Student):
-    class Config:
-        from_attributes = True
-        exclude = ("password",)
+####################################################
+
+
+class AdminBase(BaseModel):
+    name: str
+    surname: str
+    email: EmailStr
+    username: str
+
+
+class AdminCreate(AdminBase):
+    password: str
+
+
+class Admin(User):
+    username: str
+
+
+####################################################
 
 
 class Token(BaseModel):
@@ -37,3 +65,6 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     user_id: Optional[int] = None
     user_email: Optional[EmailStr] = None
+
+
+UserOut = Union[Student, Admin]

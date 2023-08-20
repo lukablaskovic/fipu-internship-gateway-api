@@ -14,9 +14,7 @@ router = APIRouter(prefix="/students", tags=["Students"])
 
 
 # Add a new user to Postgres and Baserow
-@router.post(
-    "/", status_code=status.HTTP_201_CREATED, response_model=schemas.StudentOut
-)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Student)
 async def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     student_data = student.model_dump()
     student_data["password"] = utils.hash(student_data["password"])
@@ -53,16 +51,3 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         )
     del new_student.password
     return new_student
-
-
-@router.get("/me", status_code=status.HTTP_200_OK, response_model=schemas.StudentOut)
-def get_current_user(
-    db: Session = Depends(get_db),
-    current_user: schemas.StudentOut = Depends(oauth2.get_current_user),
-):
-    return current_user
-
-
-@router.post("/finish-student-registration", status_code=status.HTTP_200_OK)
-def finish_student_registration():
-    pass
