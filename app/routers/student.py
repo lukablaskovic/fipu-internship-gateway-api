@@ -17,6 +17,7 @@ router = APIRouter(prefix="/students", tags=["Students"])
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Student)
 async def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     student_data = student.model_dump()
+
     student_data["password"] = utils.hash(student_data["password"])
     new_student = models.Student(**student_data)
 
@@ -30,7 +31,7 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
     # ADD to Baserow
     try:
         response = await add_student_to_baserow(new_student_baserow)
-        new_student_baserow_id = response["id"]
+        new_student_baserow_id = response["data"]["id"]
         new_student.baserow_id = new_student_baserow_id
     except Exception as e:
         print("Error adding user to Baserow", e)
