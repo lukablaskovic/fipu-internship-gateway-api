@@ -50,6 +50,7 @@ class Student(User):
     baserow_id: Mapped[int] = mapped_column(Integer, nullable=False)
     jmbag = Column(String, nullable=False, unique=True)
     year_of_study = Column(String, nullable=True)
+    process_instance_id = Column(String, nullable=True)
     __mapper_args__ = {
         "polymorphic_identity": "student",
     }

@@ -7,7 +7,7 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
-from app.baserow_service_connector import bw_get_students_data
+from app.baserow_service_connector import bw_get_data
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -35,29 +35,74 @@ async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)
 
 @router.get("/students", status_code=status.HTTP_200_OK)
 async def get_students_data(
-    current_user: models.Student = Depends(oauth2.get_current_user),
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(oauth2.get_current_user),
 ):
     if isinstance(current_user, models.Admin):
         try:
-            response = await bw_get_students_data()
+            # 1. Fetch the required fields from PostgreSQL
+            db_students = db.query(
+                models.Student.id,
+                models.Student.baserow_id,
+                models.Student.process_instance_id,
+            ).all()
+            db_students_dict = {
+                student.baserow_id: {
+                    "postgres_id": student.id,
+                    "process_instance_id": student.process_instance_id,
+                }
+                for student in db_students
+            }
+
+            # 2. Fetch data from Baserow
+            response = await bw_get_data("studenti")
+            students_from_baserow = response["data"]["results"]
+
+            # 3. Merge the data
+            for student in students_from_baserow:
+                student_baserow_id = student.get("id")
+                if student_baserow_id in db_students_dict:
+                    student["process_instance_id"] = db_students_dict[
+                        student_baserow_id
+                    ]["process_instance_id"]
+                    student["postgres_id"] = db_students_dict[student_baserow_id][
+                        "postgres_id"
+                    ]
+                else:
+                    pass
+
+            return students_from_baserow
+
+        except Exception as e:
+            print("Error fetching and processing students data", e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error fetching and processing students data - {e}",
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+        )
+
+
+@router.get("/companies", status_code=status.HTTP_200_OK)
+async def get_companies_data(
+    current_user: models.Admin = Depends(oauth2.get_current_user),
+):
+    if isinstance(current_user, models.Admin):
+        try:
+            response = await bw_get_data("firme")
             students = response["data"]["results"]
             return students
         except Exception as e:
-            print("Error fetching students from Baserow", e)
+            print("Error fetching companies from Baserow", e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error fetching students from Baserow - {e}",
+                detail=f"Error fetching companies from Baserow - {e}",
             )
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Unauthorized",
         )
-
-
-@router.get("/me", status_code=status.HTTP_200_OK, response_model=schemas.Admin)
-def get_current_user(
-    db: Session = Depends(get_db),
-    current_user: schemas.Admin = Depends(oauth2.get_current_user),
-):
-    return current_user

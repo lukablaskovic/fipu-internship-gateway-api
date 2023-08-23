@@ -28,12 +28,14 @@ class StudentBase(BaseModel):
 
 class StudentCreate(StudentBase):
     password: str
+    process_instance_id: str
 
 
 class Student(User):
     jmbag: str
     year_of_study: str
     baserow_id: int
+    process_instance_id: str
 
 
 ####################################################

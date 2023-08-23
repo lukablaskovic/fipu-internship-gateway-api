@@ -13,7 +13,7 @@ async def bw_add_student_to_baserow(user_data: dict):
         return response.json()
 
 
-async def bw_get_students_data():
+async def bw_get_data(table_name: str):
     async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BASE_ROW_CONNECTOR_URL}/studenti")
+        response = await client.get(f"{BASE_ROW_CONNECTOR_URL}/{table_name}")
         return response.json()
