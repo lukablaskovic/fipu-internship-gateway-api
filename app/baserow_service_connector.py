@@ -17,3 +17,11 @@ async def bw_get_data(table_name: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BASE_ROW_CONNECTOR_URL}/{table_name}")
         return response.json()
+
+
+async def bw_delete_student(attribute: str, value: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.delete(
+            f"{BASE_ROW_CONNECTOR_URL}/students/{attribute}/{value}"
+        )
+        return response.json()

@@ -7,7 +7,7 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
-from app.baserow_service_connector import bw_get_data
+from app.baserow_service_connector import bw_get_data, bw_delete_student
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -106,3 +106,45 @@ async def get_companies_data(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Unauthorized",
         )
+
+
+@router.delete("/students/{email}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_student(
+    email: str,
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(oauth2.get_current_user),
+):
+    # Check if the current user is an instance of Admin
+    if not isinstance(current_user, models.Admin):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+        )
+
+    try:
+        # 1. Delete the student from Baserow
+        baserow_response = await bw_delete_student("Email", email)
+
+        if not baserow_response or baserow_response.get("status") != True:
+            raise Exception("Error deleting student from Baserow")
+
+        # 2. Delete the student from Postgres
+        student = db.query(models.Student).filter(models.Student.email == email).first()
+
+        if not student:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Student not found in Postgres",
+            )
+
+        db.delete(student)
+        db.commit()
+
+    except Exception as e:
+        print("Error deleting student", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error deleting student - {e}",
+        )
+
+    return {"detail": "Student deleted successfully"}
