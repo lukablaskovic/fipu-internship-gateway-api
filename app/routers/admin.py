@@ -56,10 +56,10 @@ async def get_students_data(
 
             # 2. Fetch data from Baserow
             response = await bw_get_data("studenti")
-            students_from_baserow = response["data"]["results"]
+            students_data = response["data"]["results"]
 
             # 3. Merge the data
-            for student in students_from_baserow:
+            for student in students_data:
                 student_baserow_id = student.get("id")
                 if student_baserow_id in db_students_dict:
                     student["process_instance_id"] = db_students_dict[
@@ -71,7 +71,7 @@ async def get_students_data(
                 else:
                     pass
 
-            return students_from_baserow
+            return students_data
 
         except Exception as e:
             print("Error fetching and processing students data", e)
@@ -83,28 +83,6 @@ async def get_students_data(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
-        )
-
-
-@router.get("/companies", status_code=status.HTTP_200_OK)
-async def get_companies_data(
-    current_user: models.Admin = Depends(oauth2.get_current_user),
-):
-    if isinstance(current_user, models.Admin):
-        try:
-            response = await bw_get_data("firme")
-            students = response["data"]["results"]
-            return students
-        except Exception as e:
-            print("Error fetching companies from Baserow", e)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error fetching companies from Baserow - {e}",
-            )
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Unauthorized",
         )
 
 

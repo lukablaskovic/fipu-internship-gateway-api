@@ -52,3 +52,7 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         )
     del new_student.password
     return new_student
+
+
+# @router.get("/alokacije", status_code=status.HTTP_200_OK)
+# async def get_alokacije(student: schemas.StudentCreate, db: Session = Depends(get_db))
