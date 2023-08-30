@@ -59,6 +59,12 @@ class Admin(User):
 ####################################################
 
 
+class LoginForm(BaseModel):
+    email: str
+    password: str
+    remember_me: bool = False
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str

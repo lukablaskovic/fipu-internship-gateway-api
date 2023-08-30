@@ -8,7 +8,7 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
-from app.baserow_service_connector import bw_add_student_to_baserow
+from app.connectors.baserow_service_connector import bw_add_student_to_baserow
 
 router = APIRouter(prefix="/students", tags=["Students"])
 

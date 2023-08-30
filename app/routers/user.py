@@ -7,7 +7,7 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
-from app.baserow_service_connector import bw_get_data
+from app.connectors.baserow_service_connector import bw_get_data
 
 router = APIRouter(prefix="/users", tags=["Users"])
 

@@ -7,7 +7,11 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
-from app.baserow_service_connector import bw_get_data, bw_delete_student
+from app.connectors.baserow_service_connector import (
+    bw_get_data,
+    bw_delete_student_by_email,
+)
+from app.connectors.bpmn_engine_service_connector import BE_remove_instance_by_id
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -86,7 +90,7 @@ async def get_students_data(
         )
 
 
-@router.delete("/students/{email}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/students/{email}", status_code=status.HTTP_200_OK)
 async def delete_student(
     email: str,
     db: Session = Depends(get_db),
@@ -101,22 +105,38 @@ async def delete_student(
 
     try:
         # 1. Delete the student from Baserow
-        baserow_response = await bw_delete_student("Email", email)
+        baserow_response = await bw_delete_student_by_email(email)
 
         if not baserow_response or baserow_response.get("status") != True:
             raise Exception("Error deleting student from Baserow")
+        else:
+            print(f"Student {email} deleted from Baserow!", baserow_response)
 
-        # 2. Delete the student from Postgres
+        # 2. Retrieve the process instance ID for the student from Postgres
         student = db.query(models.Student).filter(models.Student.email == email).first()
 
         if not student:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Student not found in Postgres",
+                detail="Student not found in Postgres.",
+            )
+
+        process_instance_id = student.process_instance_id
+        bpmn_engine_response = await BE_remove_instance_by_id(process_instance_id)
+        print(f"{process_instance_id} deleted from BPMN Engine!", bpmn_engine_response)
+
+        # 3. Delete the student from Postgres
+        student = db.query(models.Student).filter(models.Student.email == email).first()
+
+        if not student:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Student not found in Postgres.",
             )
 
         db.delete(student)
         db.commit()
+        print(f"Student {email} deleted from Postgres!")
 
     except Exception as e:
         print("Error deleting student", e)
