@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, HTTPException, Response
+from fastapi import APIRouter, Depends, status, HTTPException, Response, Request
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -7,6 +7,7 @@ from app import models
 from app import schemas
 import app.utils as utils
 import app.oauth2 as oauth2
+from datetime import datetime
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -14,6 +15,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/", status_code=status.HTTP_200_OK, response_model=schemas.Token)
 def login(
     user_credentials: schemas.LoginForm,
+    request: Request,  # <- Add this to access the request object
     db: Session = Depends(get_db),
 ):
     user = (
@@ -33,4 +35,15 @@ def login(
         data={"user_id": user.id, "user_email": user.email},
         remember_me=user_credentials.remember_me,
     )
-    return {"access_token": access_token, "token_type": "Bearer"}
+
+    # Get client IP address
+    client_ip = request.client.host
+
+    # Get current timestamp
+    current_timestamp = datetime.now()
+
+    return {
+        "access_token": access_token,
+        "token_type": "Bearer",
+        "timestamp": current_timestamp,
+    }

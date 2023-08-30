@@ -68,6 +68,7 @@ class LoginForm(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    timestamp: datetime
 
 
 class TokenData(BaseModel):

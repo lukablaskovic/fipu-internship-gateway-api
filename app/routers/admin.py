@@ -96,7 +96,6 @@ async def delete_student(
     db: Session = Depends(get_db),
     current_user: models.Admin = Depends(oauth2.get_current_user),
 ):
-    # Check if the current user is an instance of Admin
     if not isinstance(current_user, models.Admin):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
