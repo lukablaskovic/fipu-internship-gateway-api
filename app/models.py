@@ -17,18 +17,18 @@ class User(Base):
         nullable=False,
         default="https://avatars.dicebear.com/v2/gridy/Nelson-Jerde.svg",
     )
-    name = Column(String, nullable=False)
-    surname = Column(String, nullable=False)
+    ime = Column(String, nullable=False)
+    prezime = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)
 
-    type: Mapped[str]
+    account_type: Mapped[str]
     created_at: Mapped[str] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, server_default=text("NOW()")
     )
     __mapper_args__ = {
         "polymorphic_identity": "employee",
-        "polymorphic_on": "type",
+        "polymorphic_on": "account_type",
     }
 
     def __repr__(self):
@@ -48,8 +48,8 @@ class Student(User):
     __tablename__ = "student"
     id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
     baserow_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    jmbag = Column(String, nullable=False, unique=True)
-    year_of_study = Column(String, nullable=True)
+    JMBAG = Column(String, nullable=False, unique=True)
+    godina_studija = Column(String, nullable=True)
     process_instance_id = Column(String, nullable=True)
     __mapper_args__ = {
         "polymorphic_identity": "student",

@@ -8,8 +8,8 @@ from app.db import get_db
 from app import oauth2
 
 from app.connectors.baserow_service_connector import (
-    bw_get_data,
-    bw_delete_student_by_email,
+    BW_get_data,
+    BW_delete_student_by_email,
 )
 from app.connectors.bpmn_engine_service_connector import BE_remove_instance_by_id
 
@@ -59,7 +59,7 @@ async def get_students_data(
             }
 
             # 2. Fetch data from Baserow
-            response = await bw_get_data("studenti")
+            response = await BW_get_data("Student")
             students_data = response["data"]["results"]
 
             # 3. Merge the data
@@ -104,7 +104,7 @@ async def delete_student(
 
     try:
         # 1. Delete the student from Baserow
-        baserow_response = await bw_delete_student_by_email(email)
+        baserow_response = await BW_delete_student_by_email(email)
 
         if not baserow_response or baserow_response.get("status") != True:
             raise Exception("Error deleting student from Baserow")

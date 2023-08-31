@@ -6,11 +6,11 @@ from typing import Union
 
 class User(BaseModel):
     id: int
-    name: str
-    surname: str
+    ime: str
+    prezime: str
     email: EmailStr
     avatar: str
-    type: str
+    account_type: str
     created_at: datetime
 
     class Config:
@@ -19,11 +19,11 @@ class User(BaseModel):
 
 
 class StudentBase(BaseModel):
-    name: str
-    surname: str
+    ime: str
+    prezime: str
     email: EmailStr
-    jmbag: str
-    year_of_study: str
+    JMBAG: str
+    godina_studija: str
 
 
 class StudentCreate(StudentBase):
@@ -32,8 +32,8 @@ class StudentCreate(StudentBase):
 
 
 class Student(User):
-    jmbag: str
-    year_of_study: str
+    JMBAG: str
+    godina_studija: str
     baserow_id: int
     process_instance_id: str
 
@@ -42,8 +42,8 @@ class Student(User):
 
 
 class AdminBase(BaseModel):
-    name: str
-    surname: str
+    ime: str
+    prezime: str
     email: EmailStr
     username: str
 

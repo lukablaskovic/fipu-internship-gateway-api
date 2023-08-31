@@ -8,7 +8,7 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
-from app.connectors.baserow_service_connector import bw_add_student_to_baserow
+from app.connectors.baserow_service_connector import BW_add_student_to_baserow
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
@@ -22,15 +22,15 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
     new_student = models.Student(**student_data)
 
     new_student_baserow = {
-        "name": new_student.name,
-        "surname": new_student.surname,
-        "jmbag": new_student.jmbag,
+        "ime": new_student.ime,
+        "prezime": new_student.prezime,
+        "JMBAG": new_student.JMBAG,
         "email": new_student.email,
-        "year_of_study": new_student.year_of_study,
+        "godina_studija": new_student.godina_studija,
     }
     # ADD to Baserow
     try:
-        response = await bw_add_student_to_baserow(new_student_baserow)
+        response = await BW_add_student_to_baserow(new_student_baserow)
         new_student_baserow_id = response["data"]["id"]
         new_student.baserow_id = new_student_baserow_id
     except Exception as e:
