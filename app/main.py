@@ -9,6 +9,9 @@ import app.db
 from sqlalchemy.orm import Session
 
 app = FastAPI()
+import os, sys
+import time
+
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -26,9 +29,39 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def root():
-    return {"msg": "FIPU Internship Gateway API - Running ✅"}
+@app.get("/status")
+async def status_check():
+    """
+    Health check endpoint to monitor the status of the service.
+    Returns a 200 status code with a JSON payload if the service is running.
+    """
+    return {
+        "microservice": "internship-gateway-api",
+        "status": "✅ OK",
+        "message": "Service is running",
+    }
+
+
+@app.post("/restart")
+async def restart_server():
+    """
+    Handler to restart the server.
+    """
+    print("Restarting server...")
+    os.execv(
+        sys.executable,
+        [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "app.main:app",
+            "--reload",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "9001",
+        ],
+    )
 
 
 app.include_router(auth.router)
