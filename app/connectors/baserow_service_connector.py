@@ -10,6 +10,7 @@ async def BW_add_student_to_baserow(user_data: dict):
         response = await client.post(
             f"{BASE_ROW_CONNECTOR_URL}/student", json=user_data
         )
+        response.raise_for_status()
         return response.json()
 
 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ValidationError
 from typing import Optional
 from datetime import datetime
 from typing import Union
@@ -28,13 +28,23 @@ class StudentBase(BaseModel):
 
 class StudentCreate(StudentBase):
     password: str
-    process_instance_id: str
+    baserow_id: Optional[int] = None
 
 
 class Student(User):
     JMBAG: str
     godina_studija: str
+    process_instance_id: Optional[str] = None
     baserow_id: int
+
+
+try:
+    Student()
+except ValidationError as exc:
+    print(repr(exc.errors()[0]["type"]))
+
+
+class ProcessInstanceUpdate(BaseModel):
     process_instance_id: str
 
 

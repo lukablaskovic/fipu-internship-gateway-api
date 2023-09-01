@@ -32,7 +32,7 @@ class User(Base):
     }
 
     def __repr__(self):
-        return f"{self.__class__.__name__}({self.name!r})"
+        return f"{self.__class__.__name__}({self.ime!r})"
 
 
 class Admin(User):

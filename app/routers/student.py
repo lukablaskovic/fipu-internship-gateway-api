@@ -1,6 +1,8 @@
 from fastapi import status, HTTPException, Depends, APIRouter
 from typing import List
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+import httpx
 
 from app import models
 from app import schemas
@@ -14,12 +16,13 @@ router = APIRouter(prefix="/students", tags=["Students"])
 
 
 # Add a new user to Postgres and Baserow
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Student)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     student_data = student.model_dump()
 
     student_data["password"] = utils.hash(student_data["password"])
     new_student = models.Student(**student_data)
+    print(new_student)
 
     new_student_baserow = {
         "ime": new_student.ime,
@@ -33,6 +36,12 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         response = await BW_add_student_to_baserow(new_student_baserow)
         new_student_baserow_id = response["data"]["id"]
         new_student.baserow_id = new_student_baserow_id
+    except httpx.HTTPStatusError as exc:
+        error_response = exc.response.json()
+        raise HTTPException(
+            status_code=exc.response.status_code,
+            detail=error_response.get("error", "Unknown error from Baserow"),
+        )
     except Exception as e:
         print("Error adding user to Baserow", e)
         raise HTTPException(
@@ -44,6 +53,12 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         db.add(new_student)
         db.commit()
         db.refresh(new_student)
+    except IntegrityError:
+        print(f"Unique constraint violated for student: {student_data}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Student je već registriran u sustavu.",
+        )
     except Exception as e:
         print("Error adding user to Postgres", e)
         raise HTTPException(
@@ -51,8 +66,36 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
             detail=f"Error adding user to Postgres",
         )
     del new_student.password
-    return new_student
+    pydantic_student = schemas.Student(**new_student.__dict__)
+
+    return {
+        "data": pydantic_student,
+        "message": "Student uspješno dodan.",
+        "status": 201,
+    }
 
 
-# @router.get("/alokacije", status_code=status.HTTP_200_OK)
-# async def get_alokacije(student: schemas.StudentCreate, db: Session = Depends(get_db))
+@router.patch("/{student_id}/process-instance", status_code=status.HTTP_200_OK)
+async def update_process_instance(
+    student_id: int,
+    process_update: schemas.ProcessInstanceUpdate,
+    db: Session = Depends(get_db),
+):
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Student nije pronađen."
+        )
+    print(process_update.process_instance_id)
+    student.process_instance_id = process_update.process_instance_id
+
+    try:
+        db.commit()
+    except Exception as e:
+        print("Error updating process instance ID", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating process instance ID - {e}",
+        )
+
+    return {"message": "Process instance ID updated successfully"}
