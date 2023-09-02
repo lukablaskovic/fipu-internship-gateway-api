@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 app = FastAPI()
 import os, sys
 import time
+from datetime import datetime
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -37,8 +38,9 @@ async def status_check():
     """
     return {
         "microservice": "internship-gateway-api",
-        "status": "✅ OK",
+        "status": "OK",
         "message": "Service is running",
+        "status_check_timestamp": datetime.now(),
     }
 
 

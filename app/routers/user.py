@@ -31,19 +31,3 @@ def get_current_user(
         return schemas.Admin.model_validate(admin.__dict__)
     else:
         raise HTTPException(status_code=400, detail="User account_type not recognized")
-
-
-@router.get("/companies", status_code=status.HTTP_200_OK)
-async def get_companies_data(
-    current_user: models.User = Depends(oauth2.get_current_user),
-):
-    try:
-        response = await BW_get_data("poslodavac")
-        students = response["data"]["results"]
-        return students
-    except Exception as e:
-        print("Error fetching companies from Baserow", e)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error fetching companies from Baserow - {e}",
-        )
