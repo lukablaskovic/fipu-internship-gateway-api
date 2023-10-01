@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Text, Boolean 
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped
@@ -54,3 +54,35 @@ class Student(User):
     __mapper_args__ = {
         "polymorphic_identity": "student",
     }
+
+class Message(Base):
+    __tablename__ = "message"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sender_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    receiver_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    content = Column(Text, nullable=False)
+    timestamp = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("NOW()"))
+
+    sender = relationship('User', foreign_keys=[sender_id])
+    receiver = relationship('User', foreign_keys=[receiver_id])
+
+    def __repr__(self):
+        return f"Message(sender_id={self.sender_id}, receiver_id={self.receiver_id}, content={self.content})"
+    
+class Conversation(Base):
+    __tablename__ = "conversation"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_1_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user_2_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    last_message_read_id = Column(Integer, ForeignKey('message.id'), nullable=True)
+    status = Column(String, nullable=False)
+    user_1_active = Column(Boolean, nullable=False)
+    user_2_active = Column(Boolean, nullable=False)
+
+    user_1 = relationship('User', foreign_keys=[user_1_id])
+    user_2 = relationship('User', foreign_keys=[user_2_id])
+    last_message_read = relationship('Message')
+
+    def __repr__(self):
+        return f"Conversation(user_1_id={self.user_1_id}, user_2_id={self.user_2_id}, status={self.status})"

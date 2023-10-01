@@ -3,6 +3,35 @@ from typing import Optional
 from datetime import datetime
 from typing import Union
 
+class Conversation(BaseModel):
+    user_1_id: int
+    user_2_id: int
+    status: str
+    last_message_read_id: Union[int, None] = None
+    user_1_active: bool
+    user_2_active: bool
+
+    class Config:
+        from_attributes = True
+
+class ConversationUpdate(BaseModel):
+    status: str
+    last_message_read_id: int
+    user_1_active: bool
+    user_2_active: bool
+
+class Message(BaseModel):
+    sender_id: int
+    receiver_id: int
+    content: str
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+class MessageCreate(BaseModel):
+    receiver_id: int
+    content: str
 
 class User(BaseModel):
     id: int
