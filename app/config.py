@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     remember_me_expire_minutes: int
+    BUGSNAG: str
 
     class Config:
         env_file = ".env"
