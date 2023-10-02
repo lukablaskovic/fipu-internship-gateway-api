@@ -8,6 +8,12 @@ from app import models
 import app.db
 from sqlalchemy.orm import Session
 
+from app.config import settings
+
+import bugsnag
+from bugsnag.asgi import BugsnagMiddleware
+
+
 app = FastAPI()
 import os, sys
 import time
@@ -42,6 +48,15 @@ async def status_check():
         "message": "Service is running",
         "status_check_timestamp": datetime.now(),
     }
+
+
+project_root = os.path.dirname(os.path.abspath(__file__))
+
+bugsnag.configure(
+    api_key=settings.BUGSNAG,
+    project_root=project_root,
+)
+app.add_middleware(BugsnagMiddleware)
 
 
 @app.post("/restart")
