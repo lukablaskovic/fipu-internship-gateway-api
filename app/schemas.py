@@ -61,6 +61,9 @@ class User(BaseModel):
         from_attributes = True
         exclude = ("password",)
 
+class PasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
 
 class StudentBase(BaseModel):
     ime: str

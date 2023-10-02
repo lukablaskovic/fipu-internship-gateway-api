@@ -36,7 +36,26 @@ def get_current_user(
     else:
         raise HTTPException(status_code=400, detail="User account_type not recognized")
     
+@router.patch("/update_password", status_code=status.HTTP_200_OK)
+async def update_password(
+    password_update: schemas.PasswordUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user),
+):
+    if not utils.verify(password_update.old_password, current_user.password):
+        return {"message": "Invalid old password. Please try again."}
 
+    current_user.password = utils.hash(password_update.new_password)
+
+    try:
+        db.commit()
+    except Exception as e:
+        print("Error updating password", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating password - {e}",
+        )
+    return {"message": "Password updated successfully"}
     
 @router.post("/send_message", status_code=status.HTTP_201_CREATED, response_model=schemas.Message)
 def send_message(
@@ -247,7 +266,7 @@ def get_conversations(
 
     return conversations
 
-@router.put("/update_conversation/{conversation_id}", response_model=schemas.Conversation)
+@router.patch("/update_conversation/{conversation_id}", response_model=schemas.Conversation)
 def update_conversation(
     conversation_id: int,
     conversation_update: schemas.ConversationUpdate, 
