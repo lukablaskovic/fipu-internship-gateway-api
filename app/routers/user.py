@@ -7,6 +7,7 @@ from app import schemas
 from app import utils
 from app.db import get_db
 from app import oauth2
+from datetime import datetime
 
 from app.connectors.baserow_service_connector import BW_get_data
 
@@ -61,6 +62,21 @@ def send_message(
     db.add(message_db)
     db.commit()
     db.refresh(message_db)
+
+    # Retrieve the conversation from the database
+    conversation_db = db.query(models.Conversation).filter(
+        models.Conversation.id == message.conversation_id
+    ).first()
+    if conversation_db.user_1_id == current_user.id:
+        conversation_db.user_1_last_message_read_id = message_db.id
+    else:
+        conversation_db.user_2_last_message_read_id = message_db.id
+
+    conversation_db.timestamp = datetime.now()
+
+    db.commit()
+    db.refresh(conversation_db)
+
     return message_db
 
 
@@ -178,7 +194,7 @@ def get_all_admins_info(
 
 @router.post("/add_conversation", status_code=status.HTTP_201_CREATED, response_model=schemas.Conversation)
 def add_conversation(
-    conversation: schemas.Conversation, 
+    conversation: schemas.ConversationPost, 
     db: Session = Depends(get_db)
 ):
     # Check if a conversation between the users already exists
@@ -195,7 +211,8 @@ def add_conversation(
         user_1_id=conversation.user_1_id,
         user_2_id=conversation.user_2_id,
         status=conversation.status,
-        last_message_read_id=conversation.last_message_read_id,
+        user_1_last_message_read_id=conversation.user_1_last_message_read_id,
+        user_2_last_message_read_id=conversation.user_2_last_message_read_id,
         user_1_active=conversation.user_1_active,
         user_2_active=conversation.user_2_active
     )
@@ -205,7 +222,6 @@ def add_conversation(
     db.commit()
     db.refresh(conversation_db)
     return conversation_db
-
 
 @router.get("/get_conversations/{user_id}", response_model=List[schemas.Conversation])
 def get_conversations(
@@ -245,18 +261,32 @@ def update_conversation(
     if not conversation_db:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
+    print(conversation_update)
+
     # Update the conversation attributes
     if conversation_update.status is not None:
         conversation_db.status = conversation_update.status
 
-    if conversation_update.last_message_read_id is not None:
-        conversation_db.last_message_read_id = conversation_update.last_message_read_id
+    if conversation_update.user_1_last_message_read_id is not None:
+        if conversation_db.user_1_last_message_read_id != conversation_update.user_1_last_message_read_id:
+            conversation_db.user_1_last_message_read_id = conversation_update.user_1_last_message_read_id
+            conversation_db.timestamp = datetime.now()
+
+    if conversation_update.user_2_last_message_read_id is not None:
+        if conversation_db.user_2_last_message_read_id != conversation_update.user_2_last_message_read_id:
+            conversation_db.user_2_last_message_read_id = conversation_update.user_2_last_message_read_id
+            conversation_db.timestamp = datetime.now()
 
     if conversation_update.user_1_active is not None:
-        conversation_db.user_1_active = conversation_update.user_1_active
+        if conversation_db.user_1_active != conversation_update.user_1_active:
+            conversation_db.user_1_active = conversation_update.user_1_active
+            conversation_db.timestamp = datetime.now()
 
     if conversation_update.user_2_active is not None:
-        conversation_db.user_2_active = conversation_update.user_2_active
+        if conversation_db.user_2_active != conversation_update.user_2_active:
+            conversation_db.user_2_active = conversation_update.user_2_active
+            conversation_db.timestamp = datetime.now()
+
 
     # Save the updated conversation to the database
     db.commit()

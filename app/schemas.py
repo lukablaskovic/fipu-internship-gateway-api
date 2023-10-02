@@ -4,23 +4,37 @@ from datetime import datetime
 from typing import Union
 
 class Conversation(BaseModel):
+    id: int
     user_1_id: int
     user_2_id: int
     status: str
-    last_message_read_id: Union[int, None] = None
+    user_1_last_message_read_id: Union[int, None] = None
+    user_2_last_message_read_id: Union[int, None] = None
     user_1_active: bool
     user_2_active: bool
+    timestamp: datetime
 
     class Config:
         from_attributes = True
 
-class ConversationUpdate(BaseModel):
+class ConversationPost(BaseModel):
+    user_1_id: int
+    user_2_id: int
     status: str
-    last_message_read_id: int
+    user_1_last_message_read_id: Union[int, None] = None
+    user_2_last_message_read_id: Union[int, None] = None
     user_1_active: bool
     user_2_active: bool
 
+class ConversationUpdate(BaseModel):
+    status: Union[str, None] = None
+    user_1_last_message_read_id: Union[int, None] = None
+    user_2_last_message_read_id: Union[int, None] = None
+    user_1_active: Union[bool, None] = None
+    user_2_active: Union[bool, None] = None
+
 class Message(BaseModel):
+    id: int
     sender_id: int
     receiver_id: int
     content: str
@@ -30,6 +44,7 @@ class Message(BaseModel):
         from_attributes = True
 
 class MessageCreate(BaseModel):
+    conversation_id: int
     receiver_id: int
     content: str
 

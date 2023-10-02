@@ -75,14 +75,17 @@ class Conversation(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_1_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     user_2_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    last_message_read_id = Column(Integer, ForeignKey('message.id'), nullable=True)
+    user_1_last_message_read_id = Column(Integer, ForeignKey('message.id'), nullable=True)
+    user_2_last_message_read_id = Column(Integer, ForeignKey('message.id'), nullable=True)
     status = Column(String, nullable=False)
     user_1_active = Column(Boolean, nullable=False)
     user_2_active = Column(Boolean, nullable=False)
+    timestamp = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text("NOW()"))
 
     user_1 = relationship('User', foreign_keys=[user_1_id])
     user_2 = relationship('User', foreign_keys=[user_2_id])
-    last_message_read = relationship('Message')
+    last_message_read1 = relationship('Message', foreign_keys=[user_1_last_message_read_id])
+    last_message_read2 = relationship('Message', foreign_keys=[user_2_last_message_read_id])
 
     def __repr__(self):
         return f"Conversation(user_1_id={self.user_1_id}, user_2_id={self.user_2_id}, status={self.status})"
