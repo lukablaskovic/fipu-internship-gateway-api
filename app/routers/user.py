@@ -173,13 +173,13 @@ def get_last_message(
     
 
 
-def get_all_users_info_except_current_user(
+def get_all_students_info(
     current_user_id: int,
     db: Session
 ) -> List[dict]:
-    users_info = db.query(models.User.id,  models.User.ime, models.User.prezime).filter(models.User.id != current_user_id).all()
+    users_info = db.query(models.Student.id, models.Student.baserow_id,  models.Student.ime, models.Student.prezime).filter(models.Student.id != current_user_id).all()
     
-    return [{'id': user.id, 'ime': user.ime, 'prezime': user.prezime} for user in users_info]
+    return [{'id': user.id, 'baserow_id': user.baserow_id, 'ime': user.ime, 'prezime': user.prezime} for user in users_info]
 
 @router.get("/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict])
 def get_all_users_info(
@@ -187,15 +187,15 @@ def get_all_users_info(
     current_user: models.User = Depends(oauth2.get_current_user)
 ):
     print("test")
-    users_info = get_all_users_info_except_current_user(current_user.id, db)
+    users_info = get_all_students_info(current_user.id, db)
     return users_info
 
 
 
 def get_admins_info(db: Session) -> List[dict]:
-    admins_info = db.query(models.Admin.id, models.Admin.ime, models.Admin.prezime).all()
+    admins_info = db.query(models.Admin.id, models.Admin.ime, models.Admin.prezime, models.Admin.avatar).all()
     
-    return [{'id': admin.id, 'ime': admin.ime, 'prezime': admin.prezime} for admin in admins_info]
+    return [{'id': admin.id, 'ime': admin.ime, 'prezime': admin.prezime, 'avatar': admin.avatar} for admin in admins_info]
 
 @router.get("/get_all_admins_info", status_code=status.HTTP_200_OK, response_model=List[dict])
 def get_all_admins_info(
@@ -221,8 +221,14 @@ def add_conversation(
         models.Conversation.user_1_id == conversation.user_1_id,
         models.Conversation.user_2_id == conversation.user_2_id
     ).first()
+
+    # Check if a conversation between the users already exists
+    existing_conversation2 = db.query(models.Conversation).filter(
+        models.Conversation.user_1_id == conversation.user_2_id,
+        models.Conversation.user_2_id == conversation.user_1_id
+    ).first()
     
-    if existing_conversation:
+    if existing_conversation or existing_conversation2:
         raise HTTPException(status_code=400, detail="Conversation already exists")
 
     # Create an instance of the SQLAlchemy Conversation class
@@ -232,8 +238,8 @@ def add_conversation(
         status=conversation.status,
         user_1_last_message_read_id=conversation.user_1_last_message_read_id,
         user_2_last_message_read_id=conversation.user_2_last_message_read_id,
-        user_1_active=conversation.user_1_active,
-        user_2_active=conversation.user_2_active
+        user_1_active=False,
+        user_2_active=False
     )
     
     # Save the conversation to the database
