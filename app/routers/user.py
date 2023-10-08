@@ -177,9 +177,9 @@ def get_all_users_info_except_current_user(
     current_user_id: int,
     db: Session
 ) -> List[dict]:
-    users_info = db.query(models.User.id, models.User.avatar, models.User.ime, models.User.prezime).filter(models.User.id != current_user_id).all()
+    users_info = db.query(models.User.id,  models.User.ime, models.User.prezime).filter(models.User.id != current_user_id).all()
     
-    return [{'id': user.id, 'avatar': user.avatar, 'ime': user.ime, 'prezime': user.prezime} for user in users_info]
+    return [{'id': user.id, 'ime': user.ime, 'prezime': user.prezime} for user in users_info]
 
 @router.get("/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict])
 def get_all_users_info(
@@ -193,9 +193,9 @@ def get_all_users_info(
 
 
 def get_admins_info(db: Session) -> List[dict]:
-    admins_info = db.query(models.Admin.id, models.Admin.avatar, models.Admin.ime, models.Admin.prezime).all()
+    admins_info = db.query(models.Admin.id, models.Admin.ime, models.Admin.prezime).all()
     
-    return [{'id': admin.id, 'avatar': admin.avatar, 'ime': admin.ime, 'prezime': admin.prezime} for admin in admins_info]
+    return [{'id': admin.id, 'ime': admin.ime, 'prezime': admin.prezime} for admin in admins_info]
 
 @router.get("/get_all_admins_info", status_code=status.HTTP_200_OK, response_model=List[dict])
 def get_all_admins_info(

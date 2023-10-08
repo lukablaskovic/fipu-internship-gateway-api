@@ -1,5 +1,6 @@
 from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app import models
 from app import schemas
@@ -145,3 +146,41 @@ async def delete_student(
         )
 
     return {"detail": "Student deleted successfully"}
+
+
+class AvatarUpdate(BaseModel):
+    avatar_url: str
+
+@router.patch("/avatar", status_code=status.HTTP_200_OK)
+async def update_admin_avatar(
+    username: str, 
+    avatar_update: AvatarUpdate, 
+    db: Session = Depends(get_db),
+    current_user: models.Admin = Depends(oauth2.get_current_user)
+):
+    if not isinstance(current_user, models.Admin):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized",
+        )
+
+    try:
+        admin = db.query(models.Admin).filter(models.Admin.username == username).first()
+        
+        if not admin:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Admin not found",
+            )
+
+        admin.avatar = avatar_update.avatar_url
+        db.commit()
+        db.refresh(admin)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating admin avatar - {str(e)}",
+        )
+
+    return {"detail": "Avatar updated successfully"}

@@ -12,11 +12,7 @@ Base = db.Base
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)
-    avatar = Column(
-        String,
-        nullable=False,
-        default="https://avatars.dicebear.com/v2/gridy/Nelson-Jerde.svg",
-    )
+
     ime = Column(String, nullable=False)
     prezime = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
@@ -39,6 +35,11 @@ class Admin(User):
     __tablename__ = "admin"
     id: Mapped[int] = mapped_column(ForeignKey("user.id"), primary_key=True)
     username: Mapped[str] = mapped_column(String, nullable=False)
+    avatar = Column(
+        String,
+        nullable=False,
+        default="https://www.unipu.hr/images/50020543/unipu-znak-boja_manji_200px.jpg",
+    )
     __mapper_args__ = {
         "polymorphic_identity": "admin",
     }

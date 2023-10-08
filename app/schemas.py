@@ -53,7 +53,6 @@ class User(BaseModel):
     ime: str
     prezime: str
     email: EmailStr
-    avatar: str
     account_type: str
     created_at: datetime
 
@@ -103,14 +102,16 @@ class AdminBase(BaseModel):
     prezime: str
     email: EmailStr
     username: str
+    
 
 
 class AdminCreate(AdminBase):
     password: str
-
+    
 
 class Admin(User):
     username: str
+    avatar: str
 
 
 ####################################################
