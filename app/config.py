@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int
     remember_me_expire_minutes: int
     BUGSNAG: str
+    BASEROW_CONNECTOR_URL: str
+    BPMN_ENGINE_URL: str
 
     class Config:
         env_file = ".env"

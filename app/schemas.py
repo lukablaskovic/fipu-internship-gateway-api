@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 from typing import Union
 
+
 class Conversation(BaseModel):
     id: int
     user_1_id: int
@@ -17,6 +18,7 @@ class Conversation(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ConversationPost(BaseModel):
     user_1_id: int
     user_2_id: int
@@ -26,12 +28,14 @@ class ConversationPost(BaseModel):
     user_1_active: bool
     user_2_active: bool
 
+
 class ConversationUpdate(BaseModel):
     status: Union[str, None] = None
     user_1_last_message_read_id: Union[int, None] = None
     user_2_last_message_read_id: Union[int, None] = None
     user_1_active: Union[bool, None] = None
     user_2_active: Union[bool, None] = None
+
 
 class Message(BaseModel):
     id: int
@@ -43,10 +47,12 @@ class Message(BaseModel):
     class Config:
         from_attributes = True
 
+
 class MessageCreate(BaseModel):
     conversation_id: int
     receiver_id: int
     content: str
+
 
 class User(BaseModel):
     id: int
@@ -60,9 +66,11 @@ class User(BaseModel):
         from_attributes = True
         exclude = ("password",)
 
+
 class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
+
 
 class StudentBase(BaseModel):
     ime: str
@@ -102,12 +110,11 @@ class AdminBase(BaseModel):
     prezime: str
     email: EmailStr
     username: str
-    
 
 
 class AdminCreate(AdminBase):
     password: str
-    
+
 
 class Admin(User):
     username: str
