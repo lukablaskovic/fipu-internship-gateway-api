@@ -21,5 +21,5 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t lukablaskovic/fp-fp-internship-gateway-api:latest .
-          docker push lukablaskovic/fp-fp-internship-gateway-api:latest
+          docker build -t lukablaskovic/fp-internship-gateway-api:latest .
+          docker push lukablaskovic/fp-internship-gateway-api:latest
