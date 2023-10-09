@@ -11,8 +11,6 @@ DB = {
     "host": settings.db_hostname,
     "database": settings.db_name,
 }
-print(DB)
-
 
 SQLALCHEMY_DATABASE_URL = (
     f"postgresql://{DB['user']}:{DB['password']}@{DB['host']}/{DB['database']}"
@@ -25,9 +23,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+from sqlalchemy.exc import SQLAlchemyError
+
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
+    except SQLAlchemyError as e:
+        print(f"Database error: {str(e)}")
     finally:
         db.close()
