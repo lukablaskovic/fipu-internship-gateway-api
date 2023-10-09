@@ -3,7 +3,7 @@
 import httpx
 from app.config import settings
 
-BASEROW_CONNECTOR_URL = f"${settings.BASEROW_CONNECTOR_URL}/api"
+BASEROW_CONNECTOR_URL = f"{settings.BASEROW_CONNECTOR_URL}/api"
 
 
 async def BW_add_student_to_baserow(user_data: dict):

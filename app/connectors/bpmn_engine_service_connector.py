@@ -3,7 +3,7 @@
 import httpx
 from app.config import settings
 
-BPMN_ENGINE_CONNECTOR_URL = f"${settings.BPMN_ENGINE_URL}"
+BPMN_ENGINE_CONNECTOR_URL = f"{settings.BPMN_ENGINE_URL}"
 
 
 async def BE_remove_instance_by_id(instance_id: str):
