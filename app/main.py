@@ -23,9 +23,7 @@ from datetime import datetime
 models.Base.metadata.create_all(bind=engine)
 
 
-origins = [
-    "https://fp-fipu-internship-frontend.onrender.com",
-]
+origins = ["https://fp-fipu-internship-frontend.onrender.com", "http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
