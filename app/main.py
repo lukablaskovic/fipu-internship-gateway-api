@@ -57,28 +57,6 @@ bugsnag.configure(
 app.add_middleware(BugsnagMiddleware)
 
 
-@app.post("/restart")
-async def restart_server():
-    """
-    Handler to restart the server.
-    """
-    print("Restarting server...")
-    os.execv(
-        sys.executable,
-        [
-            sys.executable,
-            "-m",
-            "uvicorn",
-            "app.main:app",
-            "--reload",
-            "--host",
-            "0.0.0.0",
-            "--port",
-            "9001",
-        ],
-    )
-
-
 app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(student.router)

@@ -35,7 +35,8 @@ def get_current_user(
         return schemas.Admin.model_validate(admin.__dict__)
     else:
         raise HTTPException(status_code=400, detail="User account_type not recognized")
-    
+
+
 @router.patch("/update_password", status_code=status.HTTP_200_OK)
 async def update_password(
     password_update: schemas.PasswordUpdate,
@@ -56,12 +57,15 @@ async def update_password(
             detail=f"Error updating password - {e}",
         )
     return {"message": "Password updated successfully"}
-    
-@router.post("/send_message", status_code=status.HTTP_201_CREATED, response_model=schemas.Message)
+
+
+@router.post(
+    "/send_message", status_code=status.HTTP_201_CREATED, response_model=schemas.Message
+)
 def send_message(
-    message: schemas.MessageCreate, 
+    message: schemas.MessageCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     # Check if the sender is authorized to send messages
     if current_user.account_type != "admin" and current_user.account_type != "student":
@@ -71,21 +75,23 @@ def send_message(
     message_db = models.Message(
         sender_id=current_user.id,
         receiver_id=message.receiver_id,
-        content=message.content
+        content=message.content,
     )
 
     # Set sender_id to the current user's id
     message_db.sender_id = current_user.id
-    
+
     # Save the message to the database
     db.add(message_db)
     db.commit()
     db.refresh(message_db)
 
     # Retrieve the conversation from the database
-    conversation_db = db.query(models.Conversation).filter(
-        models.Conversation.id == message.conversation_id
-    ).first()
+    conversation_db = (
+        db.query(models.Conversation)
+        .filter(models.Conversation.id == message.conversation_id)
+        .first()
+    )
     if conversation_db.user_1_id == current_user.id:
         conversation_db.user_1_last_message_read_id = message_db.id
     else:
@@ -99,12 +105,15 @@ def send_message(
     return message_db
 
 
-
-@router.get("/get_messages/{receiver_id}", status_code=status.HTTP_200_OK, response_model=List[schemas.Message])
+@router.get(
+    "/get_messages/{receiver_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=List[schemas.Message],
+)
 def get_messages(
     receiver_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     # Check if the current user is authorized to retrieve messages
     if current_user.account_type != "admin" and current_user.account_type != "student":
@@ -113,27 +122,40 @@ def get_messages(
     # Check if the receiver_id is valid
     if db.query(models.User).filter(models.User.id == receiver_id).first() is None:
         raise HTTPException(status_code=404, detail="Receiver user not found")
-    
+
     # Retrieve messages where the current user is the sender and the receiver is the specified user
-    messages_sent = db.query(models.Message).filter(
-        models.Message.sender_id == current_user.id,
-        models.Message.receiver_id == receiver_id
-    ).all()
+    messages_sent = (
+        db.query(models.Message)
+        .filter(
+            models.Message.sender_id == current_user.id,
+            models.Message.receiver_id == receiver_id,
+        )
+        .all()
+    )
 
     # Retrieve messages where the current user is the receiver and the sender is the specified user
-    messages_received = db.query(models.Message).filter(
-        models.Message.sender_id == receiver_id,
-        models.Message.receiver_id == current_user.id
-    ).all()
+    messages_received = (
+        db.query(models.Message)
+        .filter(
+            models.Message.sender_id == receiver_id,
+            models.Message.receiver_id == current_user.id,
+        )
+        .all()
+    )
 
     # Combine and return both sets of messages
     return messages_sent + messages_received
 
-@router.get("/get_last_message/{receiver_id}", status_code=status.HTTP_200_OK, response_model=schemas.Message)
+
+@router.get(
+    "/get_last_message/{receiver_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=schemas.Message,
+)
 def get_last_message(
     receiver_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     # Check if the current user is authorized to retrieve messages
     if current_user.account_type != "admin" and current_user.account_type != "student":
@@ -144,22 +166,34 @@ def get_last_message(
         raise HTTPException(status_code=404, detail="Receiver user not found")
 
     # Retrieve the most recent message where the current user is the sender and the receiver is the specified user
-    last_message_sent = db.query(models.Message).filter(
-        models.Message.sender_id == current_user.id,
-        models.Message.receiver_id == receiver_id
-    ).order_by(models.Message.timestamp.desc()).first()
+    last_message_sent = (
+        db.query(models.Message)
+        .filter(
+            models.Message.sender_id == current_user.id,
+            models.Message.receiver_id == receiver_id,
+        )
+        .order_by(models.Message.timestamp.desc())
+        .first()
+    )
 
-    print(last_message_sent)
+    # print(last_message_sent)
 
     # Retrieve the most recent message where the current user is the receiver and the sender is the specified user
-    last_message_received = db.query(models.Message).filter(
-        models.Message.sender_id == receiver_id,
-        models.Message.receiver_id == current_user.id
-    ).order_by(models.Message.timestamp.desc()).first()
+    last_message_received = (
+        db.query(models.Message)
+        .filter(
+            models.Message.sender_id == receiver_id,
+            models.Message.receiver_id == current_user.id,
+        )
+        .order_by(models.Message.timestamp.desc())
+        .first()
+    )
 
     # Determine the most recent message
     if last_message_sent and last_message_received:
-        most_recent_message = max(last_message_sent, last_message_received, key=lambda x: x.timestamp)
+        most_recent_message = max(
+            last_message_sent, last_message_received, key=lambda x: x.timestamp
+        )
     elif last_message_sent:
         most_recent_message = last_message_sent
     else:
@@ -170,64 +204,103 @@ def get_last_message(
 
     return most_recent_message
 
-    
+
+def get_all_students_info(current_user_id: int, db: Session) -> List[dict]:
+    users_info = (
+        db.query(
+            models.Student.id,
+            models.Student.baserow_id,
+            models.Student.ime,
+            models.Student.prezime,
+        )
+        .filter(models.Student.id != current_user_id)
+        .all()
+    )
+
+    return [
+        {
+            "id": user.id,
+            "baserow_id": user.baserow_id,
+            "ime": user.ime,
+            "prezime": user.prezime,
+        }
+        for user in users_info
+    ]
 
 
-def get_all_students_info(
-    current_user_id: int,
-    db: Session
-) -> List[dict]:
-    users_info = db.query(models.Student.id, models.Student.baserow_id,  models.Student.ime, models.Student.prezime).filter(models.Student.id != current_user_id).all()
-    
-    return [{'id': user.id, 'baserow_id': user.baserow_id, 'ime': user.ime, 'prezime': user.prezime} for user in users_info]
-
-@router.get("/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict])
+@router.get(
+    "/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict]
+)
 def get_all_users_info(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
-    print("test")
+    # print("test")
     users_info = get_all_students_info(current_user.id, db)
     return users_info
 
 
-
 def get_admins_info(db: Session) -> List[dict]:
-    admins_info = db.query(models.Admin.id, models.Admin.ime, models.Admin.prezime, models.Admin.avatar).all()
-    
-    return [{'id': admin.id, 'ime': admin.ime, 'prezime': admin.prezime, 'avatar': admin.avatar} for admin in admins_info]
+    admins_info = db.query(
+        models.Admin.id, models.Admin.ime, models.Admin.prezime, models.Admin.avatar
+    ).all()
 
-@router.get("/get_all_admins_info", status_code=status.HTTP_200_OK, response_model=List[dict])
+    return [
+        {
+            "id": admin.id,
+            "ime": admin.ime,
+            "prezime": admin.prezime,
+            "avatar": admin.avatar,
+        }
+        for admin in admins_info
+    ]
+
+
+@router.get(
+    "/get_all_admins_info", status_code=status.HTTP_200_OK, response_model=List[dict]
+)
 def get_all_admins_info(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     # Check if the current user is an admin
     if current_user.account_type != "student":
-        raise HTTPException(status_code=403, detail="Unauthorized to access admins information")
+        raise HTTPException(
+            status_code=403, detail="Unauthorized to access admins information"
+        )
 
     admins_info = get_admins_info(db)
     return admins_info
 
 
-
-@router.post("/add_conversation", status_code=status.HTTP_201_CREATED, response_model=schemas.Conversation)
+@router.post(
+    "/add_conversation",
+    status_code=status.HTTP_201_CREATED,
+    response_model=schemas.Conversation,
+)
 def add_conversation(
-    conversation: schemas.ConversationPost, 
-    db: Session = Depends(get_db)
+    conversation: schemas.ConversationPost, db: Session = Depends(get_db)
 ):
     # Check if a conversation between the users already exists
-    existing_conversation = db.query(models.Conversation).filter(
-        models.Conversation.user_1_id == conversation.user_1_id,
-        models.Conversation.user_2_id == conversation.user_2_id
-    ).first()
+    existing_conversation = (
+        db.query(models.Conversation)
+        .filter(
+            models.Conversation.user_1_id == conversation.user_1_id,
+            models.Conversation.user_2_id == conversation.user_2_id,
+        )
+        .first()
+    )
 
     # Check if a conversation between the users already exists
-    existing_conversation2 = db.query(models.Conversation).filter(
-        models.Conversation.user_1_id == conversation.user_2_id,
-        models.Conversation.user_2_id == conversation.user_1_id
-    ).first()
-    
+    existing_conversation2 = (
+        db.query(models.Conversation)
+        .filter(
+            models.Conversation.user_1_id == conversation.user_2_id,
+            models.Conversation.user_2_id == conversation.user_1_id,
+        )
+        .first()
+    )
+
     if existing_conversation or existing_conversation2:
         raise HTTPException(status_code=400, detail="Conversation already exists")
 
@@ -239,67 +312,92 @@ def add_conversation(
         user_1_last_message_read_id=conversation.user_1_last_message_read_id,
         user_2_last_message_read_id=conversation.user_2_last_message_read_id,
         user_1_active=False,
-        user_2_active=False
+        user_2_active=False,
     )
-    
+
     # Save the conversation to the database
     db.add(conversation_db)
     db.commit()
     db.refresh(conversation_db)
     return conversation_db
 
+
 @router.get("/get_conversations/{user_id}", response_model=List[schemas.Conversation])
 def get_conversations(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(oauth2.get_current_user)
+    current_user: models.User = Depends(oauth2.get_current_user),
 ):
     # Check if the current user is authorized to retrieve conversations
     if current_user.account_type != "admin" and current_user.account_type != "student":
-        raise HTTPException(status_code=403, detail="Unauthorized to retrieve conversations")
-    
+        raise HTTPException(
+            status_code=403, detail="Unauthorized to retrieve conversations"
+        )
+
     # Check if the user_id parameter matches the current user's id
     if user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Unauthorized to retrieve conversations for this user")
+        raise HTTPException(
+            status_code=403,
+            detail="Unauthorized to retrieve conversations for this user",
+        )
 
     # Retrieve conversations where the user is involved
-    conversations = db.query(models.Conversation).filter(
-        or_(
-            models.Conversation.user_1_id == user_id,
-            models.Conversation.user_2_id == user_id
+    conversations = (
+        db.query(models.Conversation)
+        .filter(
+            or_(
+                models.Conversation.user_1_id == user_id,
+                models.Conversation.user_2_id == user_id,
+            )
         )
-    ).all()
+        .all()
+    )
 
     return conversations
 
-@router.patch("/update_conversation/{conversation_id}", response_model=schemas.Conversation)
+
+@router.patch(
+    "/update_conversation/{conversation_id}", response_model=schemas.Conversation
+)
 def update_conversation(
     conversation_id: int,
-    conversation_update: schemas.ConversationUpdate, 
-    db: Session = Depends(get_db)
+    conversation_update: schemas.ConversationUpdate,
+    db: Session = Depends(get_db),
 ):
     # Retrieve the conversation from the database
-    conversation_db = db.query(models.Conversation).filter(
-        models.Conversation.id == conversation_id
-    ).first()
+    conversation_db = (
+        db.query(models.Conversation)
+        .filter(models.Conversation.id == conversation_id)
+        .first()
+    )
 
     if not conversation_db:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    print(conversation_update)
+    # print(conversation_update)
 
     # Update the conversation attributes
     if conversation_update.status is not None:
         conversation_db.status = conversation_update.status
 
     if conversation_update.user_1_last_message_read_id is not None:
-        if conversation_db.user_1_last_message_read_id != conversation_update.user_1_last_message_read_id:
-            conversation_db.user_1_last_message_read_id = conversation_update.user_1_last_message_read_id
+        if (
+            conversation_db.user_1_last_message_read_id
+            != conversation_update.user_1_last_message_read_id
+        ):
+            conversation_db.user_1_last_message_read_id = (
+                conversation_update.user_1_last_message_read_id
+            )
             conversation_db.timestamp = datetime.now()
 
     if conversation_update.user_2_last_message_read_id is not None:
-        if conversation_db.user_2_last_message_read_id != conversation_update.user_2_last_message_read_id:
-            conversation_db.user_2_last_message_read_id = conversation_update.user_2_last_message_read_id
+        if (
+            conversation_db.user_2_last_message_read_id
+            != conversation_update.user_2_last_message_read_id
+        ):
+            conversation_db.user_2_last_message_read_id = (
+                conversation_update.user_2_last_message_read_id
+            )
             conversation_db.timestamp = datetime.now()
 
     if conversation_update.user_1_active is not None:
@@ -311,7 +409,6 @@ def update_conversation(
         if conversation_db.user_2_active != conversation_update.user_2_active:
             conversation_db.user_2_active = conversation_update.user_2_active
             conversation_db.timestamp = datetime.now()
-
 
     # Save the updated conversation to the database
     db.commit()

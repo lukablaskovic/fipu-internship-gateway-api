@@ -14,6 +14,7 @@ from app.connectors.baserow_service_connector import BW_add_student_to_baserow
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
+
 # Add a new user to Postgres and Baserow
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
@@ -21,7 +22,7 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
 
     student_data["password"] = utils.hash(student_data["password"])
     new_student = models.Student(**student_data)
-    print(new_student)
+    # print(new_student)
 
     new_student_baserow = {
         "ime": new_student.ime,
@@ -29,7 +30,7 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         "JMBAG": new_student.JMBAG,
         "email": new_student.email,
         "godina_studija": new_student.godina_studija,
-        "avatar": avatar
+        "avatar": avatar,
     }
     # ADD to Baserow
     try:

@@ -22,5 +22,5 @@ async def BW_get_data(table_name: str):
 async def BW_delete_student_by_email(value: str):
     async with httpx.AsyncClient() as client:
         response = await client.delete(f"{BASEROW_CONNECTOR_URL}/student/email/{value}")
-        print(response)
+        # print(response)
         return response.json()
