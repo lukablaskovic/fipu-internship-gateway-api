@@ -210,6 +210,7 @@ def get_all_students_info(current_user_id: int, db: Session) -> List[dict]:
         db.query(
             models.Student.id,
             models.Student.baserow_id,
+            models.Student.process_instance_id,
             models.Student.ime,
             models.Student.prezime,
         )
@@ -221,12 +222,13 @@ def get_all_students_info(current_user_id: int, db: Session) -> List[dict]:
         {
             "id": user.id,
             "baserow_id": user.baserow_id,
+            "process_instance_id": user.process_instance_id,
             "ime": user.ime,
             "prezime": user.prezime,
         }
         for user in users_info
     ]
-
+ 
 
 @router.get(
     "/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict]
