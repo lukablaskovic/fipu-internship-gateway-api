@@ -9,8 +9,8 @@ class Settings(BaseSettings):
     db_username: str
     secret_key: str
     algorithm: str
-    access_token_expire_minutes: int
-    remember_me_expire_minutes: int
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REMEMBER_ME_EXPIRE_MINUTES: int
     BUGSNAG: str
     BASEROW_CONNECTOR_URL: str
     BPMN_ENGINE_URL: str

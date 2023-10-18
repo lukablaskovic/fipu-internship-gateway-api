@@ -18,8 +18,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
-ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
-REMEMBER_ME_EXPIRE_MINUTES = settings.remember_me_expire_minutes
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+REMEMBER_ME_EXPIRE_MINUTES = settings.REMEMBER_ME_EXPIRE_MINUTES
 
 
 def create_access_token(data: dict, remember_me: bool = False):
