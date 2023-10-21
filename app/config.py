@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     BUGSNAG: str
     BASEROW_CONNECTOR_URL: str
     BPMN_ENGINE_URL: str
-    PORT: int
 
     class Config:
         env_file = ".env"
