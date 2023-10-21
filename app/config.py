@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB_NAME: str
     POSTGRES_USERNAME: str
-    secret_key: str
+    SECRET_KEY: str
     PASS_HASHING_ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REMEMBER_ME_EXPIRE_MINUTES: int

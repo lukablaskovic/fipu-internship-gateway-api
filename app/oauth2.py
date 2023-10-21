@@ -16,7 +16,7 @@ from app.config import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth")
 
-SECRET_KEY = settings.secret_key
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.PASS_HASHING_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REMEMBER_ME_EXPIRE_MINUTES = settings.REMEMBER_ME_EXPIRE_MINUTES

@@ -54,8 +54,8 @@ bugsnag.configure(
     api_key=settings.BUGSNAG,
     project_root=project_root,
 )
-app.add_middleware(BugsnagMiddleware)
 
+app.add_middleware(BugsnagMiddleware)
 
 app.include_router(auth.router)
 app.include_router(user.router)

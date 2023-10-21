@@ -11,12 +11,11 @@ DB = {
     "host": settings.POSTGRES_HOSTNAME,
     "database": settings.POSTGRES_DB_NAME,
 }
-print("DB", DB)
+
 SQLALCHEMY_DATABASE_URL = (
     f"postgresql://{DB['user']}:{DB['password']}@{DB['host']}/{DB['database']}"
 )
 
-print("SQLALCHEMY_DATABASE_URL", SQLALCHEMY_DATABASE_URL)
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
