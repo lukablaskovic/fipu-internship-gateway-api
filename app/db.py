@@ -6,10 +6,10 @@ from app.config import settings
 
 DB = {
     "provider": "postgres",
-    "user": settings.db_username,
-    "password": settings.db_password,
-    "host": settings.db_hostname,
-    "database": settings.db_name,
+    "user": settings.POSTGRES_USERNAME,
+    "password": settings.POSTGRES_PASSWORD,
+    "host": settings.POSTGRES_HOSTNAME,
+    "database": settings.POSTGRES_DB_NAME,
 }
 
 SQLALCHEMY_DATABASE_URL = (
