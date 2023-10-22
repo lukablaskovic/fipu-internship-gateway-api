@@ -8,8 +8,12 @@ from app import schemas
 import app.utils as utils
 import app.oauth2 as oauth2
 from datetime import datetime
+import logging
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", status_code=status.HTTP_200_OK, response_model=schemas.Token)
@@ -24,12 +28,18 @@ def login(
         .first()
     )
     if not user:
+        logger.warning(
+            f"Invalid login attempt: user with email {user_credentials.email} not found."
+        )
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials"
         )
     if not utils.verify(user_credentials.password, user.password):
+        logger.warning(
+            f"Invalid login attempt: incorrect password for user with email {user_credentials.email}."
+        )
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials"
         )
     access_token = oauth2.create_access_token(
         data={"user_id": user.id, "user_email": user.email},
@@ -38,6 +48,9 @@ def login(
 
     # Get client IP address
     client_ip = request.client.host
+    logger.info(
+        f"User with email {user.email} logged in successfully from IP address {client_ip}."
+    )
 
     # Get current timestamp
     current_timestamp = datetime.now()

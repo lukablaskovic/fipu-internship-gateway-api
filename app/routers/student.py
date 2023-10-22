@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 import httpx
-
+import logging
 from app import models
 from app import schemas
 from app import utils
@@ -14,6 +14,9 @@ from app.connectors.baserow_service_connector import BW_add_student_to_baserow
 
 router = APIRouter(prefix="/students", tags=["Students"])
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 # Add a new user to Postgres and Baserow
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -22,7 +25,6 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
 
     student_data["password"] = utils.hash(student_data["password"])
     new_student = models.Student(**student_data)
-    # print(new_student)
 
     new_student_baserow = {
         "ime": new_student.ime,
@@ -32,6 +34,7 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         "godina_studija": new_student.godina_studija,
         "avatar": avatar,
     }
+
     # ADD to Baserow
     try:
         response = await BW_add_student_to_baserow(new_student_baserow)
@@ -39,29 +42,33 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
         new_student.baserow_id = new_student_baserow_id
     except httpx.HTTPStatusError as exc:
         error_response = exc.response.json()
+        logger.error(
+            f"Error adding user to Baserow: {error_response.get('error', 'Unknown error from Baserow')}"
+        )
         raise HTTPException(
             status_code=exc.response.status_code,
             detail=error_response.get("error", "Unknown error from Baserow"),
         )
     except Exception as e:
-        print("Error adding user to Baserow", e)
+        logger.error(f"Error adding user to Baserow: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error adding user to Baserow - {e}",
         )
+
+    # ADD to Postgres
     try:
-        # ADD to Postgres
         db.add(new_student)
         db.commit()
         db.refresh(new_student)
     except IntegrityError:
-        print(f"Unique constraint violated for student: {student_data}")
+        logger.error(f"Unique constraint violated for student: {student_data}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Student je već registriran u sustavu.",
         )
     except Exception as e:
-        print("Error adding user to Postgres", e)
+        logger.error(f"Error adding user to Postgres: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error adding user to Postgres",
@@ -87,13 +94,13 @@ async def update_process_instance(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Student nije pronađen."
         )
-    print(process_update.process_instance_id)
+    logger.info(f"Process instance ID: {process_update.process_instance_id}")
     student.process_instance_id = process_update.process_instance_id
 
     try:
         db.commit()
     except Exception as e:
-        print("Error updating process instance ID", e)
+        logger.error(f"Error updating process instance ID: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error updating process instance ID - {e}",

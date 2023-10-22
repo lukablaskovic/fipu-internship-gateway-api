@@ -9,9 +9,8 @@ from app.db import get_db
 from app import oauth2
 from datetime import datetime
 
-from app.connectors.baserow_service_connector import BW_get_data
 
-from typing import List  # Add this import statement
+from typing import List
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -228,7 +227,7 @@ def get_all_students_info(current_user_id: int, db: Session) -> List[dict]:
         }
         for user in users_info
     ]
- 
+
 
 @router.get(
     "/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict]
@@ -237,7 +236,6 @@ def get_all_users_info(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
 ):
-    # print("test")
     users_info = get_all_students_info(current_user.id, db)
     return users_info
 

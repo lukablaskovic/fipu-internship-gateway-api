@@ -8,11 +8,15 @@ from app import utils
 from app.db import get_db
 from app import oauth2
 
+import logging
 from app.connectors.baserow_service_connector import (
     BW_get_data,
     BW_delete_student_by_email,
 )
 from app.connectors.bpmn_engine_service_connector import BE_remove_instance_by_id
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -29,12 +33,13 @@ async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)
         db.commit()
         db.refresh(new_admin)
     except Exception as e:
-        print("Error adding admin to Postgres", e)
+        logger.error(f"Error adding admin to Postgres: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error adding admin to Postgres",
+            detail="Error adding admin to Postgres",
         )
     del new_admin.password
+    logger.info(f"Admin with email {new_admin.email} created successfully.")
     return new_admin
 
 
@@ -76,15 +81,17 @@ async def get_students_data(
                 else:
                     pass
 
+            logger.info("Successfully fetched and processed students data.")
             return students_data
 
         except Exception as e:
-            print("Error fetching and processing students data", e)
+            logger.error(f"Error fetching and processing students data: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error fetching and processing students data - {e}",
             )
     else:
+        logger.warning("Unauthorized access attempt to get students data.")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
@@ -98,6 +105,7 @@ async def delete_student(
     current_user: models.Admin = Depends(oauth2.get_current_user),
 ):
     if not isinstance(current_user, models.Admin):
+        logger.warning("Unauthorized access attempt to delete student.")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
@@ -110,12 +118,13 @@ async def delete_student(
         if not baserow_response or baserow_response.get("status") != True:
             raise Exception("Error deleting student from Baserow")
         else:
-            print(f"Student {email} deleted from Baserow!", baserow_response)
+            logger.info(f"Student {email} deleted from Baserow!")
 
         # 2. Retrieve the process instance ID for the student from Postgres
         student = db.query(models.Student).filter(models.Student.email == email).first()
 
         if not student:
+            logger.warning("Student not found in Postgres.")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Student not found in Postgres.",
@@ -123,12 +132,13 @@ async def delete_student(
 
         process_instance_id = student.process_instance_id
         bpmn_engine_response = await BE_remove_instance_by_id(process_instance_id)
-        print(f"{process_instance_id} deleted from BPMN Engine!", bpmn_engine_response)
+        logger.info(f"Process instance {process_instance_id} deleted from BPMN Engine!")
 
         # 3. Delete the student from Postgres
         student = db.query(models.Student).filter(models.Student.email == email).first()
 
         if not student:
+            logger.warning("Student not found in Postgres.")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Student not found in Postgres.",
@@ -136,10 +146,10 @@ async def delete_student(
 
         db.delete(student)
         db.commit()
-        print(f"Student {email} deleted from Postgres!")
+        logger.info(f"Student {email} deleted from Postgres!")
 
     except Exception as e:
-        print("Error deleting student", e)
+        logger.error(f"Error deleting student: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error deleting student - {e}",
@@ -151,14 +161,16 @@ async def delete_student(
 class AvatarUpdate(BaseModel):
     avatar_url: str
 
+
 @router.patch("/avatar", status_code=status.HTTP_200_OK)
 async def update_admin_avatar(
-    username: str, 
-    avatar_update: AvatarUpdate, 
+    username: str,
+    avatar_update: AvatarUpdate,
     db: Session = Depends(get_db),
-    current_user: models.Admin = Depends(oauth2.get_current_user)
+    current_user: models.Admin = Depends(oauth2.get_current_user),
 ):
     if not isinstance(current_user, models.Admin):
+        logger.warning("Unauthorized access attempt to update admin avatar.")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
@@ -166,8 +178,9 @@ async def update_admin_avatar(
 
     try:
         admin = db.query(models.Admin).filter(models.Admin.username == username).first()
-        
+
         if not admin:
+            logger.warning("Admin not found.")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Admin not found",
@@ -176,8 +189,10 @@ async def update_admin_avatar(
         admin.avatar = avatar_update.avatar_url
         db.commit()
         db.refresh(admin)
+        logger.info(f"Avatar updated successfully for admin with username {username}.")
 
     except Exception as e:
+        logger.error(f"Error updating admin avatar: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error updating admin avatar - {str(e)}",
