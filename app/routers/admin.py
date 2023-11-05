@@ -43,7 +43,7 @@ async def create_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)
     return new_admin
 
 
-@router.get("students", status_code=status.HTTP_200_OK)
+@router.get("/students", status_code=status.HTTP_200_OK)
 async def get_students_data(
     db: Session = Depends(get_db),
     current_user: models.Admin = Depends(oauth2.get_current_user),
@@ -98,7 +98,7 @@ async def get_students_data(
         )
 
 
-@router.delete("students/{email}", status_code=status.HTTP_200_OK)
+@router.delete("/students/{email}", status_code=status.HTTP_200_OK)
 async def delete_student(
     email: str,
     db: Session = Depends(get_db),
@@ -162,7 +162,7 @@ class AvatarUpdate(BaseModel):
     avatar_url: str
 
 
-@router.patch("avatar", status_code=status.HTTP_200_OK)
+@router.patch("/avatar", status_code=status.HTTP_200_OK)
 async def update_admin_avatar(
     username: str,
     avatar_update: AvatarUpdate,

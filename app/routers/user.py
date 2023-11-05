@@ -15,7 +15,7 @@ from typing import List
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("me", status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
+@router.get("/me", status_code=status.HTTP_200_OK, response_model=schemas.UserOut)
 def get_current_user(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(oauth2.get_current_user),
@@ -36,7 +36,7 @@ def get_current_user(
         raise HTTPException(status_code=400, detail="User account_type not recognized")
 
 
-@router.patch("update_password", status_code=status.HTTP_200_OK)
+@router.patch("/update_password", status_code=status.HTTP_200_OK)
 async def update_password(
     password_update: schemas.PasswordUpdate,
     db: Session = Depends(get_db),
@@ -59,7 +59,7 @@ async def update_password(
 
 
 @router.post(
-    "send_message", status_code=status.HTTP_201_CREATED, response_model=schemas.Message
+    "/send_message", status_code=status.HTTP_201_CREATED, response_model=schemas.Message
 )
 def send_message(
     message: schemas.MessageCreate,
@@ -105,7 +105,7 @@ def send_message(
 
 
 @router.get(
-    "get_messages/{receiver_id}",
+    "/get_messages/{receiver_id}",
     status_code=status.HTTP_200_OK,
     response_model=List[schemas.Message],
 )
@@ -147,7 +147,7 @@ def get_messages(
 
 
 @router.get(
-    "get_last_message/{receiver_id}",
+    "/get_last_message/{receiver_id}",
     status_code=status.HTTP_200_OK,
     response_model=schemas.Message,
 )
@@ -230,7 +230,7 @@ def get_all_students_info(current_user_id: int, db: Session) -> List[dict]:
 
 
 @router.get(
-    "get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict]
+    "/get_all_users_info", status_code=status.HTTP_200_OK, response_model=List[dict]
 )
 def get_all_users_info(
     db: Session = Depends(get_db),
@@ -257,7 +257,7 @@ def get_admins_info(db: Session) -> List[dict]:
 
 
 @router.get(
-    "get_all_admins_info", status_code=status.HTTP_200_OK, response_model=List[dict]
+    "/get_all_admins_info", status_code=status.HTTP_200_OK, response_model=List[dict]
 )
 def get_all_admins_info(
     db: Session = Depends(get_db),
@@ -274,7 +274,7 @@ def get_all_admins_info(
 
 
 @router.post(
-    "add_conversation",
+    "/add_conversation",
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.Conversation,
 )
@@ -322,7 +322,7 @@ def add_conversation(
     return conversation_db
 
 
-@router.get("get_conversations/{user_id}", response_model=List[schemas.Conversation])
+@router.get("/get_conversations/{user_id}", response_model=List[schemas.Conversation])
 def get_conversations(
     user_id: int,
     db: Session = Depends(get_db),
@@ -357,7 +357,7 @@ def get_conversations(
 
 
 @router.patch(
-    "update_conversation/{conversation_id}", response_model=schemas.Conversation
+    "/update_conversation/{conversation_id}", response_model=schemas.Conversation
 )
 def update_conversation(
     conversation_id: int,
