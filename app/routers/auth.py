@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@router.post("/", status_code=status.HTTP_200_OK, response_model=schemas.Token)
+@router.post("", status_code=status.HTTP_200_OK, response_model=schemas.Token)
 def login(
     user_credentials: schemas.LoginForm,
     request: Request,  # <- Add this to access the request object

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 # Add a new user to Postgres and Baserow
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     student_data = student.model_dump()
 
@@ -83,7 +83,7 @@ async def create_student(student: schemas.StudentCreate, db: Session = Depends(g
     }
 
 
-@router.patch("/{student_id}/process-instance", status_code=status.HTTP_200_OK)
+@router.patch("{student_id}/process-instance", status_code=status.HTTP_200_OK)
 async def update_process_instance(
     student_id: int,
     process_update: schemas.ProcessInstanceUpdate,
