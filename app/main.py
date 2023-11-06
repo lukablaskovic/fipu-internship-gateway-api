@@ -44,7 +44,7 @@ async def status_check():
         "microservice": "internship-gateway-api",
         "status": "OK",
         "message": "Service is running",
-        "status_check_timestamp": datetime.now(),
+        "status_check_timestamp": datetime.utcnow(),
     }
 
 

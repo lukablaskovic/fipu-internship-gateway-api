@@ -96,7 +96,7 @@ def send_message(
     else:
         conversation_db.user_2_last_message_read_id = message_db.id
 
-    conversation_db.timestamp = datetime.now()
+    conversation_db.timestamp = datetime.utcnow()
 
     db.commit()
     db.refresh(conversation_db)
@@ -388,7 +388,7 @@ def update_conversation(
             conversation_db.user_1_last_message_read_id = (
                 conversation_update.user_1_last_message_read_id
             )
-            conversation_db.timestamp = datetime.now()
+            conversation_db.timestamp = datetime.utcnow()
 
     if conversation_update.user_2_last_message_read_id is not None:
         if (
@@ -398,17 +398,17 @@ def update_conversation(
             conversation_db.user_2_last_message_read_id = (
                 conversation_update.user_2_last_message_read_id
             )
-            conversation_db.timestamp = datetime.now()
+            conversation_db.timestamp = datetime.utcnow()
 
     if conversation_update.user_1_active is not None:
         if conversation_db.user_1_active != conversation_update.user_1_active:
             conversation_db.user_1_active = conversation_update.user_1_active
-            conversation_db.timestamp = datetime.now()
+            conversation_db.timestamp = datetime.utcnow()
 
     if conversation_update.user_2_active is not None:
         if conversation_db.user_2_active != conversation_update.user_2_active:
             conversation_db.user_2_active = conversation_update.user_2_active
-            conversation_db.timestamp = datetime.now()
+            conversation_db.timestamp = datetime.utcnow()
 
     # Save the updated conversation to the database
     db.commit()
