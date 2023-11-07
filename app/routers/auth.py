@@ -53,7 +53,7 @@ def login(
     )
 
     # Get current timestamp
-    current_timestamp = datetime.utcnow()
+    current_timestamp = datetime.now()
 
     return {
         "access_token": access_token,
